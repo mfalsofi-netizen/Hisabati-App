@@ -5,7 +5,7 @@ app = next(Path("appsrc").rglob("package.json")).parent
 android = app / "android"
 main = next(android.rglob("MainActivity.java"))
 source = main.read_text(encoding="utf-8")
-match = re.search(r"package\\s+([\\w.]+);", source)
+match = re.search(r"package\s+([\w.]+);", source)
 if not match:
     raise SystemExit("Could not determine Android package from MainActivity")
 package = match.group(1)
@@ -53,6 +53,6 @@ public class HisabatiPrintPlugin extends Plugin {
 
 if "HisabatiPrintPlugin.class" not in source:
     source = source.replace("public class MainActivity extends BridgeActivity {",
-        "public class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(HisabatiPrintPlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }")
+        "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(HisabatiPrintPlugin.class);\n        super.onCreate(savedInstanceState);\n    }")
     main.write_text(source, encoding="utf-8")
 print("Registered native Android PrintManager plugin")
