@@ -30,6 +30,7 @@ jobs:
       - name: Apply source patches
         run: |
           python3 patches/print-layout.py
+          python3 patches/order-form.py
           node --check appsrc/hisabati-project/www/app.js
 
       - name: Locate project
@@ -57,6 +58,7 @@ jobs:
           cd "$APP_DIR"
           npx cap add android
           python3 ../../patches/native-print.py
+          python3 ../../patches/native-contacts.py
           npx cap sync android
           cd android
           chmod +x gradlew
