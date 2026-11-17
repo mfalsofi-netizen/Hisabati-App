@@ -18,6 +18,15 @@ jobs:
       - name: Extract project
         run: unzip -o hisabati-project.zip -d appsrc
 
+      - name: Inspect extracted source
+        run: |
+          echo '=== FILES ==='
+          find appsrc/hisabati-project -maxdepth 3 -type f -printf '%p (%s bytes)\\n' | sort
+          for f in package.json capacitor.config.json README.md www/index.html www/app.js; do
+            echo "=== $f ==="
+            sed -n '1,260p' "appsrc/hisabati-project/$f"
+          done
+
       - name: Locate project
         run: |
           DIR=$(find appsrc -name package.json -printf '%h\n' | head -1)
