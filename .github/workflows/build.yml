@@ -56,6 +56,7 @@ jobs:
         run: |
           cd "$APP_DIR"
           npx cap add android
+          python3 ../../patches/native-print.py
           npx cap sync android
           cd android
           chmod +x gradlew
