@@ -55,9 +55,13 @@ function printDocument(title,content,format='a4'){
   window.addEventListener('afterprint',cleanup,{once:true});
   document.addEventListener('visibilitychange',onVisible);
   failsafe=setTimeout(cleanup,5*60*1000);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    try{printStarted=true;window.print();}
-    catch(e){cleanup();alert('تعذرت الطباعة: '+e.message);}
+  requestAnimationFrame(()=>requestAnimationFrame(async()=>{
+    try{
+      printStarted=true;
+      const nativePrint=window.Capacitor?.Plugins?.HisabatiPrint;
+      if(nativePrint?.print){await nativePrint.print({title,format});}
+      else{window.print();}
+    }catch(e){cleanup();alert('تعذرت الطباعة: '+(e?.message||e));}
   }));
 }
 """
@@ -108,3 +112,53 @@ function printInvoice(id){
 s = s[:start] + invoice + s[end:]
 js.write_text(s, encoding="utf-8")
 print("Print patch applied")
+
+# Register a native Android PrintManager bridge for Capacitor WebView.
+android = app / "android"
+java_dir = android / "app" / "src" / "main" / "java" / "com" / "hisabati" / "app"
+java_dir.mkdir(parents=True, exist_ok=True)
+plugin = java_dir / "HisabatiPrintPlugin.java"
+plugin.write_text("""package com.hisabati.app;
+
+import android.content.Context;
+import android.print.PrintAttributes;
+import android.print.PrintManager;
+import android.webkit.WebView;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+@CapacitorPlugin(name = "HisabatiPrint")
+public class HisabatiPrintPlugin extends Plugin {
+    @PluginMethod
+    public void print(PluginCall call) {
+        String title = call.getString("title", "حساباتي");
+        getActivity().runOnUiThread(() -> {
+            try {
+                PrintManager manager = (PrintManager) getContext().getSystemService(Context.PRINT_SERVICE);
+                WebView webView = getBridge().getWebView();
+                android.print.PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(title);
+                PrintAttributes attributes = new PrintAttributes.Builder()
+                    .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                    .setResolution(new PrintAttributes.Resolution("hisabati", "Hisabati", 300, 300))
+                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                    .build();
+                manager.print(title, adapter, attributes);
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("تعذرت تهيئة الطباعة: " + e.getMessage(), e);
+            }
+        });
+    }
+}
+""", encoding="utf-8")
+
+main = java_dir / "MainActivity.java"
+if main.exists():
+    m = main.read_text(encoding="utf-8")
+    if "HisabatiPrintPlugin" not in m:
+        m = m.replace("import com.getcapacitor.BridgeActivity;", "import com.getcapacitor.BridgeActivity;\nimport com.hisabati.app.HisabatiPrintPlugin;")
+        m = m.replace("public class MainActivity extends BridgeActivity {", "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(HisabatiPrintPlugin.class);\n        super.onCreate(savedInstanceState);\n    }")
+        main.write_text(m, encoding="utf-8")
+print("Native Android PrintManager bridge installed")
