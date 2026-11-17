@@ -101,9 +101,10 @@ invoice = """
 function printInvoice(id){
   let o=orders.find(x=>x.id===id);if(!o)return;
   let t=totals(o);
-  let rows=o.items.map(x=>'<tr><td>'+esc(x.name)+'<br><small>'+x.qty+' × '+money(x.price,o.currency)+'</small></td><td>'+money(x.qty*x.price,o.currency)+'</td></tr>').join('');
+  // Customer invoice exposes sale price only; internal purchase cost is never printed.
+  let rows=o.items.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+x.qty+'</td><td>'+money(x.price,o.currency)+'</td><td>'+money(x.qty*x.price,o.currency)+'</td></tr>').join('');
   let content='<div class="print-meta"><b>فاتورة طلب شراء</b><br>الحالة: '+esc(o.status)+'<br>رقم الطلب: '+esc(o.id)+'<br>التاريخ: '+esc(o.date)+'<br>العميل: '+esc(o.customerName)+'<br>'+(o.customerPhone?'الهاتف: '+esc(o.customerPhone):'')+'</div>'+
-  '<section class="print-section"><table><thead><tr><th style="width:62%">الصنف</th><th>الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table></section>'+
+  '<section class="print-section"><table><thead><tr><th>الصنف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table></section>'+
   '<section class="print-section"><table><tbody><tr><td>إجمالي قيمة البضاعة</td><td>'+money(t.sale,o.currency)+'</td></tr><tr><td>الشحن المطلوب من العميل</td><td>'+money(t.sh,o.currency)+'</td></tr><tr><td><b>إجمالي المبلغ المطلوب</b></td><td><b>'+money(t.due,o.currency)+'</b></td></tr></tbody></table></section>'+
   (o.notes?'<p class="print-meta">ملاحظات: '+esc(o.notes)+'</p>':'');
   printDocument('فاتورة طلب شراء',content,'80mm');
