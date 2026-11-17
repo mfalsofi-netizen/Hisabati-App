@@ -1,6 +1,7 @@
 from pathlib import Path
-html = Path("www/index.html")
-js = Path("www/app.js")
+app = next(Path("appsrc").rglob("package.json")).parent
+html = app / "www" / "index.html"
+js = app / "www" / "app.js"
 h = html.read_text(encoding="utf-8")
 if 'id="printRoot"' not in h:
     css = """
