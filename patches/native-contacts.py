@@ -67,9 +67,15 @@ public class HisabatiContactsPlugin extends Plugin {
 """.replace("${package}", package), encoding="utf-8")
 
 if "HisabatiContactsPlugin.class" not in source:
-    source = source.replace(
-        "public class MainActivity extends BridgeActivity {",
-        "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(HisabatiContactsPlugin.class);\n        registerPlugin(HisabatiPrintPlugin.class);\n        super.onCreate(savedInstanceState);\n    }"
-    )
+    if "public void onCreate(android.os.Bundle savedInstanceState)" in source:
+        source = source.replace(
+            "public void onCreate(android.os.Bundle savedInstanceState) {",
+            "public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(HisabatiContactsPlugin.class);"
+        )
+    else:
+        source = source.replace(
+            "public class MainActivity extends BridgeActivity {",
+            "public class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(HisabatiContactsPlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }"
+        )
     main.write_text(source, encoding="utf-8")
 print("Registered Android system contact picker plugin")
