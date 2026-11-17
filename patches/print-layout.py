@@ -22,7 +22,6 @@ if 'id="printRoot"' not in h:
   #printRoot .print-footer{margin-top:16px;text-align:center;color:#666;font-size:9px}
   body.printing.print-80mm #printRoot{width:72mm!important;margin:0 auto!important;font-family:Tahoma,Arial,sans-serif}
   body.printing.print-80mm #printRoot th,body.printing.print-80mm #printRoot td{font-size:9px!important;padding:4px 2px!important}
-  body.printing.print-a4 @page{size:A4 portrait;margin:12mm}
 }
 """
     h = h.replace("</style></head>", css + "</style></head>")
@@ -38,6 +37,7 @@ function printDocument(title,content,format='a4'){
   if(document.body.classList.contains('printing'))return;
   root.innerHTML='<div class="print-title">حساباتي</div>'+content+'<div class="print-footer">برمجة وتطوير — مناف جلال</div>';
   document.title=title;
+  const pageRule=document.createElement('style');pageRule.id='hisabatiPrintPageRule';pageRule.textContent=format==='80mm'?'@page{size:80mm auto;margin:3mm}':'@page{size:A4 portrait;margin:12mm}';document.head.appendChild(pageRule);
   document.body.classList.add('printing',format==='80mm'?'print-80mm':'print-a4');
   let finished=false, printStarted=false, failsafe;
   const cleanup=()=>{
@@ -45,6 +45,7 @@ function printDocument(title,content,format='a4'){
     finished=true;
     document.body.classList.remove('printing','print-80mm','print-a4');
     root.innerHTML='';
+    pageRule.remove();
     document.title='حساباتي';
     window.removeEventListener('afterprint',cleanup);
     document.removeEventListener('visibilitychange',onVisible);
