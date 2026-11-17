@@ -27,6 +27,11 @@ jobs:
             sed -n '1,260p' "appsrc/hisabati-project/$f"
           done
 
+      - name: Apply source patches
+        run: |
+          python3 patches/print-layout.py
+          node --check appsrc/hisabati-project/www/app.js
+
       - name: Locate project
         run: |
           DIR=$(find appsrc -name package.json -printf '%h\n' | head -1)
