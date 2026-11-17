@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-app = next(Path("appsrc").rglob("package.json")).parent
+app = Path(".").resolve()
 android = app / "android"
 main = next(android.rglob("MainActivity.java"))
 source = main.read_text(encoding="utf-8")
