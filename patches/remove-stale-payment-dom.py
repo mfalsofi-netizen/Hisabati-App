@@ -1,10 +1,9 @@
 from pathlib import Path
-import re
 app=next(Path("appsrc").rglob("package.json")).parent
 p=app/"www"/"app.js"
-s=p.read_text(encoding="utf-8")
-# Remove legacy payment selector handlers: the approved screen has no such control.
-s=re.sub(r"function updatePaymentFields\(\)\s*\{.*?\n\}", "", s, count=1, flags=re.S)
-s=re.sub(r"^.*\$\(\'paymentStatus\'\)\.addEventListener\([^\n]*\n", "", s, flags=re.M)
-p.write_text(s,encoding="utf-8")
-print("Removed stale references to the deleted payment-status selector")
+lines=p.read_text(encoding="utf-8").splitlines()
+# The new order form intentionally has no paymentStatus DOM element.
+# Remove every legacy line that tries to read or listen to that deleted selector.
+lines=[line for line in lines if "$('paymentStatus')" not in line]
+p.write_text("\n".join(lines)+"\n",encoding="utf-8")
+print("Removed all legacy DOM access to the deleted payment-status selector")
