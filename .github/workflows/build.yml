@@ -31,6 +31,7 @@ jobs:
         run: |
           python3 patches/print-layout.py
           python3 patches/order-form.py
+          python3 patches/final-updates.py
           node --check appsrc/hisabati-project/www/app.js
 
       - name: Locate project
