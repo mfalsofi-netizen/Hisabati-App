@@ -69,5 +69,83 @@ function shareInvoiceWhatsApp(id){
 window.shareInvoiceWhatsApp=shareInvoiceWhatsApp;
 """
 h=h.replace('</style></head>',' .btn.whatsapp{background:#168b4b!important;color:#fff!important;border-color:#168b4b!important}</style></head>')
+
+# Restore core order, dashboard, customer and save handlers omitted by an earlier patch.
+s=s.replace("if(page==='new'&&!$('editId').value)addItemRow();","if(page==='new'&&!$('editId').value&&$('items').children.length===0)addItemRow();")
+s += r"""
+function paymentState(o){return o.paymentStatus||o.status||'بانتظار الدفع';}
+function orderCard(o){
+ const t=totals(o),st=paymentState(o);
+ return '<div class="panel order-card"><div class="row"><div><b>'+esc(o.customerName)+'</b><div class="muted">'+esc(o.id)+' · '+esc(o.date||'')+'</div><div class="muted">'+esc(o.customerPhone||'')+'</div></div><div><b>'+money(t.due,o.currency)+'</b><div class="pill">'+esc(st)+'</div><div class="muted">المتبقي: '+money(Math.max(0,t.due-Number(o.amountReceived||0)),o.currency)+'</div></div></div><div class="actions"><button class="btn light" data-action="edit" data-id="'+esc(o.id)+'">✏️ تعديل</button><button class="btn red" data-action="delete" data-id="'+esc(o.id)+'">🗑️ حذف</button><button class="btn light" data-action="print" data-id="'+esc(o.id)+'">🖨️ طباعة الفاتورة</button><button class="btn whatsapp" data-action="whatsapp" data-id="'+esc(o.id)+'">🟢 واتساب</button></div></div>';
+}
+function renderOrders(){
+ const q=($('orderSearch').value||'').trim().toLowerCase(),st=$('filterStatus').value,cu=$('filterCurrency').value;
+ const arr=orders.filter(o=>(!q||[o.id,o.customerName,o.customerPhone].join(' ').toLowerCase().includes(q))&&(!st||paymentState(o)===st)&&(!cu||o.currency===cu)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ $('ordersList').innerHTML=arr.length?arr.map(orderCard).join(''):'<p class="muted">لا توجد طلبات مطابقة.</p>';
+}
+function renderDashboard(){
+ const currencies=['SAR','USD','YER'];
+ $('dashboardStats').innerHTML=currencies.map(c=>{const a=orders.filter(o=>o.currency===c),due=a.reduce((v,o)=>v+totals(o).due,0),profit=a.reduce((v,o)=>v+totals(o).profit,0),pending=a.filter(o=>paymentState(o)==='بانتظار الدفع').length;return '<div class="panel"><h3>'+c+'</h3><div>عدد الطلبات: <b>'+a.length+'</b></div><div>إجمالي المطلوب: <b>'+money(due,c)+'</b></div><div>صافي الربح: <b>'+money(profit,c)+'</b></div><div>بانتظار الدفع: <b>'+pending+'</b></div></div>';}).join('');
+ const recent=[...orders].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+ $('recentOrders').innerHTML=recent.length?recent.map(orderCard).join(''):'<p class="muted">لا توجد طلبات حتى الآن.</p>';
+}
+function renderCustomers(){
+ const map=new Map();
+ orders.forEach(o=>{const key=(o.customerPhone||o.customerName||'').trim();if(!key)return;let c=map.get(key)||{name:o.customerName,phone:o.customerPhone,orders:[],due:0,received:0};c.orders.push(o);c.due+=totals(o).due;c.received+=Number(o.amountReceived||0);map.set(key,c);});
+ $('customersList').innerHTML=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar')).map(c=>'<div class="panel"><b>'+esc(c.name)+'</b><div class="muted">'+esc(c.phone||'')+' · '+c.orders.length+' طلب</div><div>إجمالي المطلوب: '+money(c.due,c.orders[0].currency)+'</div><div>المستلم: '+money(c.received,c.orders[0].currency)+'</div><div>المتبقي: '+money(Math.max(0,c.due-c.received),c.orders[0].currency)+'</div></div>').join('')||'<p class="muted">لا يوجد زبائن مسجلون.</p>';
+}
+function clearForm(){
+ $('editId').value='';$('formTitle').textContent='طلب جديد';
+ ['customerName','customerPhone','orderNotes'].forEach(id=>$(id).value='');
+ $('currency').value='SAR';$('shippingCost').value='';$('shippingCharge').value='';
+ $('paymentStatus').value='بانتظار الدفع';$('amountReceived').value='0';
+ $('items').innerHTML='';addItemRow();updatePaymentFields();calcSummary();
+}
+function editOrder(id){
+ const o=orders.find(x=>x.id===id);if(!o)return;
+ $('editId').value=o.id;$('formTitle').textContent='تعديل الطلب';
+ $('customerName').value=o.customerName||'';$('customerPhone').value=o.customerPhone||'';
+ $('currency').value=o.currency||'SAR';$('shippingCost').value=o.shippingCost??'';
+ $('shippingCharge').value=o.shippingCharge??'';$('paymentStatus').value=paymentState(o);
+ $('amountReceived').value=Number(o.amountReceived||0);$('orderNotes').value=o.notes||'';
+ $('items').innerHTML='';(o.items||[]).forEach(addItemRow);if(!o.items?.length)addItemRow();
+ updatePaymentFields();if(paymentState(o)==='تم استلام جزء من المبلغ')$('amountReceived').value=Number(o.amountReceived||0);
+ calcSummary();showPage('new');
+}
+async function deleteOrder(id){
+ if(!confirm('هل تريد حذف هذا الطلب نهائياً؟'))return;
+ orders=orders.filter(o=>o.id!==id);await saveAll();
+}
+function showReview(){
+ const o=formData(),error=validate(o);if(error){alert(error);return;}
+ const t=totals(o),received=Number(o.amountReceived||0);
+ $('reviewBody').innerHTML='<p><b>العميل:</b> '+esc(o.customerName)+' — '+esc(o.customerPhone)+'</p><p><b>عدد الأصناف:</b> '+o.items.length+'</p><p><b>إجمالي المطلوب:</b> '+money(t.due,o.currency)+'</p><p><b>المبلغ المستلم:</b> '+money(received,o.currency)+'</p><p><b>المتبقي:</b> '+money(t.due-received,o.currency)+'</p><p><b>حالة الدفع:</b> '+esc(o.paymentStatus)+'</p>';
+ $('modal').classList.remove('hidden');
+}
+async function confirmSaveOrder(){
+ const o=formData(),error=validate(o);if(error){alert(error);$('modal').classList.add('hidden');return;}
+ const idx=orders.findIndex(x=>x.id===o.id);if(idx>=0)orders[idx]=o;else orders.unshift(o);
+ await saveAll();$('modal').classList.add('hidden');clearForm();showPage('orders');
+}
+$('reviewOrder').addEventListener('click',showReview);
+$('confirmSave').addEventListener('click',confirmSaveOrder);
+$('backEdit').addEventListener('click',()=>$('modal').classList.add('hidden'));
+$('clearForm').addEventListener('click',()=>{if(confirm('إلغاء الإدخال الحالي؟ لن يتم حذف أي طلب محفوظ.'))clearForm();});
+$('orderSearch').addEventListener('input',renderOrders);
+$('filterStatus').addEventListener('change',renderOrders);
+$('filterCurrency').addEventListener('change',renderOrders);
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-action][data-id]');if(!b)return;
+ const id=b.dataset.id,action=b.dataset.action;
+ if(action==='edit')editOrder(id);
+ if(action==='delete')deleteOrder(id);
+ if(action==='print')printInvoice(id);
+ if(action==='whatsapp')shareInvoiceWhatsApp(id);
+});
+window.editOrder=editOrder;window.deleteOrder=deleteOrder;
+"""
+hp.write_text(h,encoding="utf-8")
+jp.write_text(s,encoding="utf-8")
+
 hp.write_text(h,encoding="utf-8")
 jp.write_text(s,encoding="utf-8")
