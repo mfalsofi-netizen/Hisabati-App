@@ -181,19 +181,17 @@ $('reviewOrder').onclick=async()=>{
 };
 '''
 # Fix reset/edit logic for removed status controls and retain old saved records.
-s = re.sub(r"function clearForm\(\)\{.*?\n", r'''function clearForm(){
+s = re.sub(r"function clearForm\(\)\s*\{.*?\n\}\s*function editOrder\(id\)\s*\{.*?\n\}", r'''function clearForm(){
  $('editId').value='';$('formTitle').textContent='طلب جديد';
  ['customerName','customerPhone','orderNotes'].forEach(id=>{if($(id))$(id).value='';});
  $('currency').value='SAR';$('amountReceived').value='0';$('shippingCost').value='0';$('shippingCharge').value='0';$('items').innerHTML='';addItemRow();calcSummary();
 }
-''',s,count=1,flags=re.S)
-s = re.sub(r"function editOrder\(id\)\{.*?\n", r'''function editOrder(id){
+function editOrder(id){
  const o=orders.find(x=>x.id===id);if(!o)return;showPage('new');$('editId').value=o.id;$('formTitle').textContent='تعديل الطلب';
  $('customerName').value=o.customerName||'';$('customerPhone').value=o.customerPhone||'';$('currency').value=o.currency||'SAR';
  $('amountReceived').value=Number(o.amountReceived||0);$('shippingCost').value=o.shippingCost||0;$('shippingCharge').value=o.shippingCharge||0;$('orderNotes').value=o.notes||'';
  $('items').innerHTML='';(o.items||[]).forEach(addItemRow);calcSummary();
-}
-''',s,count=1,flags=re.S)
+}''',s,count=1,flags=re.S)
 # Existing legacy payment controls must not be referenced by reset/edit or shown.
 s=s.replace("const overdue=$('overdueDays');if(overdue)overdue.value=settings.overdueDays;", "const overdue=$('overdueDays');if(overdue)overdue.value=settings.overdueDays;")
 s=s.replace("$('overdueDays').value=settings.overdueDays;", "if($('overdueDays'))$('overdueDays').value=settings.overdueDays;")
