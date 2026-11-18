@@ -49,3 +49,25 @@ window.printInvoice=printInvoice;""",s,count=1,flags=re.S)
 h=h.replace('</style></head>','''#printRoot{font-family:Tahoma,Arial,sans-serif}.receipt-head{text-align:center;border-bottom:1px dashed #333;padding-bottom:8px;margin-bottom:8px}.receipt-head h2{font-size:16px;margin:0 0 7px;color:#111}.receipt-head div,.receipt-customer{font-size:10px;line-height:1.8}.receipt-customer{padding:6px 0;border-bottom:1px dashed #777}.receipt-status{text-align:center;font-weight:bold;font-size:12px;padding:7px 2px;border-bottom:1px dashed #777}.receipt-item{padding:6px 0;border-bottom:1px dotted #aaa;font-size:11px;break-inside:avoid}.receipt-line,.receipt-totals>div{display:flex;justify-content:space-between;gap:5px;font-size:10px;line-height:1.8}.receipt-line span{direction:ltr}.receipt-totals{padding-top:7px}.receipt-totals .grand{font-size:12px;font-weight:bold;border-top:1px solid #111;border-bottom:1px solid #111;padding:5px 0;margin:4px 0}.receipt-notes{font-size:10px;margin-top:8px}.receipt-thanks{text-align:center;font-size:11px;font-weight:bold;border-top:1px dashed #777;margin-top:10px;padding-top:9px}@media print{body.printing.print-80mm #printRoot{width:74mm!important;max-width:74mm!important;margin:0 auto!important;padding:0 1mm!important}body.printing.print-80mm #printRoot *{color:#111!important}}</style></head>''')
 hp.write_text(h,encoding="utf-8");jp.write_text(s,encoding="utf-8")
 print("Final approved changes applied")
+
+
+# Action icons and WhatsApp invoice sharing (appended after the main patch).
+h=hp.read_text(encoding="utf-8")
+s=jp.read_text(encoding="utf-8")
+s=s.replace('>تعديل</button>','>✏️ تعديل</button>')
+s=s.replace('>حذف</button>','>🗑️ حذف</button>')
+s=s.replace('>طباعة الفاتورة</button>','>🖨️ طباعة الفاتورة</button><button class="btn whatsapp" aria-label="مشاركة الفاتورة عبر واتساب" onclick="shareInvoiceWhatsApp(\\''+o.id+'\\')">🟢 واتساب</button>')
+if "function shareInvoiceWhatsApp(id)" not in s:
+ s += r"""
+function shareInvoiceWhatsApp(id){
+ let o=orders.find(x=>x.id===id);if(!o)return;
+ let t=totals(o),lines=o.items.map(x=>'• '+x.name+' — '+x.qty+' × '+money(x.price,o.currency)+' = '+money(x.qty*x.price,o.currency)).join('\n');
+ let received=Number(o.amountReceived||0),remaining=Math.max(0,t.due-received);
+ let message='فاتورة طلب شراء\nرقم الطلب: '+o.id+'\nالتاريخ: '+o.date+'\nالعميل: '+o.customerName+(o.customerPhone?'\nالهاتف: '+o.customerPhone:'')+'\n\n'+lines+'\n\nإجمالي البضاعة: '+money(t.sale,o.currency)+'\nتكلفة الشحن على العميل: '+money(t.sh,o.currency)+'\nالإجمالي المطلوب: '+money(t.due,o.currency)+'\nالمبلغ المستلم: '+money(received,o.currency)+'\nالمتبقي: '+money(remaining,o.currency)+'\nحالة الدفع: '+(o.paymentStatus||'بانتظار الدفع');
+ window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank');
+}
+window.shareInvoiceWhatsApp=shareInvoiceWhatsApp;
+"""
+h=h.replace('</style></head>',' .btn.whatsapp{background:#168b4b!important;color:#fff!important;border-color:#168b4b!important}</style></head>')
+hp.write_text(h,encoding="utf-8")
+jp.write_text(s,encoding="utf-8")
