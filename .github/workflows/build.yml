@@ -36,6 +36,7 @@ jobs:
           python3 patches/approved-save-summary.py
           python3 patches/approved-new-order-design.py
           python3 patches/reference-screen-amount-only.py
+          python3 patches/remove-stale-payment-dom.py
           node --check appsrc/hisabati-project/www/app.js
 
       - name: Locate project
