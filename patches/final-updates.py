@@ -149,3 +149,33 @@ jp.write_text(s,encoding="utf-8")
 
 hp.write_text(h,encoding="utf-8")
 jp.write_text(s,encoding="utf-8")
+
+# Runtime compatibility and visible diagnostics for Android WebView.
+h=hp.read_text(encoding="utf-8")
+s=jp.read_text(encoding="utf-8")
+# This application uses no import/export; a classic script is more compatible with older Android WebViews.
+h=h.replace('<script type="module" src="app.js"></script>','''<script>
+(function(){
+  function showError(message){
+    var box=document.getElementById('runtimeError');
+    if(!box){box=document.createElement('div');box.id='runtimeError';box.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#8b1e1e;color:#fff;padding:12px;font:13px Tahoma;direction:rtl;max-height:35vh;overflow:auto';document.body.appendChild(box);}
+    box.textContent='حدث خطأ في تشغيل التطبيق: '+message;
+  }
+  window.addEventListener('error',function(e){showError((e.message||'خطأ غير معروف')+' — '+(e.filename||'')+':'+(e.lineno||''));});
+  window.addEventListener('unhandledrejection',function(e){showError(String(e.reason&&e.reason.message||e.reason||'Promise error'));});
+  document.addEventListener('DOMContentLoaded',function(){
+    var nav=document.getElementById('nav');
+    if(nav)nav.addEventListener('click',function(e){
+      var b=e.target.closest('button[data-page]');if(!b)return;
+      document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('hidden',p.id!==b.dataset.page);});
+      document.querySelectorAll('nav button').forEach(function(x){x.classList.toggle('active',x===b);});
+    });
+  });
+})();
+</script><script src="app.js"></script>''')
+# Guard against old/corrupt local records preventing screens from rendering.
+s=s.replace("orders=await get('orders')||[];expenses=await get('expenses')||[];", "orders=await get('orders')||[];expenses=await get('expenses')||[];if(!Array.isArray(orders))orders=[];if(!Array.isArray(expenses))expenses=[];orders=orders.map(o=>({...o,items:Array.isArray(o.items)?o.items:[]}));")
+s=s.replace("let cost=o.items.reduce(", "let items=Array.isArray(o.items)?o.items:[];let cost=items.reduce(")
+s=s.replace(",sale=o.items.reduce(", ",sale=items.reduce(")
+jp.write_text(s,encoding="utf-8")
+hp.write_text(h,encoding="utf-8")
