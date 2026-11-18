@@ -61,7 +61,7 @@ if n != 1: raise SystemExit("New-order section not found; refusing unsafe patch"
 
 css = r"""
 /* Screenshot-led recreation of the approved 1024x1536 New Order screen */
-#new{padding:0!important;background:#f6f9ff!important}
+#new{padding:0!important;background:#f6f9ff!important}body.order-entry>header,body.order-entry>nav{display:none!important}
 #new .ref-order{width:100%;max-width:520px;margin:0 auto;padding:0 12px 18px;direction:rtl;color:#202b3e;font-family:Tahoma,Arial,sans-serif}
 #new .ref-head{height:58px;margin:0 -12px 10px;padding:0 17px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;background:linear-gradient(110deg,#1268bd,#07519d);border-radius:0 0 17px 17px;color:#fff}
 #new .ref-head h2{margin:0!important;text-align:center;color:#fff!important;font-size:25px!important;font-weight:800!important}
@@ -87,8 +87,8 @@ css = r"""
 #new .ref-item-row .iname{text-align:right;padding-inline:8px;font-size:13px}
 #new .ref-item-row .iqty{font-size:13px;font-weight:700}
 #new .ref-item-row .lineTotal{height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#e2efff;color:#075cc2;font-size:13px;font-weight:800;direction:ltr;white-space:nowrap}
-#new .ref-item-row .delItem{width:32px;height:32px;padding:0!important;margin:0!important;border:0;border-radius:50%;background:#ed2937;color:white;font-size:0;display:grid;place-items:center}
-#new .ref-item-row .delItem svg{width:19px;height:19px}
+#new .ref-item-row .delItem{width:28px;height:30px;padding:0!important;margin:0!important;border:0;border-radius:50%;background:#ed2937;color:white;font-size:0;display:grid;place-items:center}
+#new .ref-item-row .delItem svg{width:18px;height:18px}
 #new .ref-shipping .ref-section-head{height:42px}
 #new .ref-shipping-grid{display:grid;grid-template-columns:1fr 1fr;padding:7px 9px 9px;gap:12px}
 #new .ref-field{min-width:0;padding:0 8px}
