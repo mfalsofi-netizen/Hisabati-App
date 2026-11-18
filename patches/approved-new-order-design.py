@@ -27,7 +27,7 @@ new_section = r'''<section id="new" class="page hidden">
 <section class="approved-card summary-card"><div class="approved-card-title summary-title">ملخص الطلب　▦</div><div id="orderSummary" class="notice order-summary"></div></section>
 <section class="approved-card currency-card"><label for="currency">العملة</label><select id="currency" class="currency-select"><option value="SAR">🇸🇦 SAR</option><option value="USD">🇺🇸 USD</option><option value="YER">🇾🇪 YER</option></select></section>
 <div class="order-form-actions"><button class="btn light" id="clearForm">إعادة تعيين　⟳</button><button class="btn" id="reviewOrder">حفظ الطلب　▣</button></div>
-</div></section>
+</div></section>'''
 h, n = re.subn(r'<section id="new" class="page hidden">.*?(?=<section id="customers")', new_section + '\n', h, count=1, flags=re.S)
 if n != 1:
     raise SystemExit("Could not replace the New Order section markup safely")
@@ -82,7 +82,7 @@ css = r"""/* Layout calibrated to the approved mobile reference */
 #new #reviewOrder{background:linear-gradient(110deg,#1674d0,#0755a2)!important;color:#fff!important}
 #new #clearForm{background:#f5f7fc!important;border:1px solid #9baec8!important;color:#263750!important}
 @media(max-width:390px){#new .approved-order{padding-left:8px;padding-right:8px}#new .approved-order-head{margin-left:-8px;margin-right:-8px}#new .sum-item b{font-size:12px!important}#new .sum-item small{font-size:9px!important}#new .customer-grid{gap:7px}}
-
+"""
 h = h.replace("</style></head>", css + "\n</style></head>", 1)
 
 # Remove the prior faulty layout helper which attached card classes to the entire form panel.
