@@ -34,6 +34,7 @@ jobs:
           python3 patches/final-updates.py
           python3 patches/ui-approved.py
           python3 patches/approved-save-summary.py
+          python3 patches/approved-new-order-design.py
           node --check appsrc/hisabati-project/www/app.js
 
       - name: Locate project
