@@ -86,7 +86,7 @@ from path/* Pixel-guided layout matching the supplied approved mobile reference 
   <div class="order-form-actions"><button class="btn light" id="clearForm">إعادة تعيين　⟳</button><button class="btn" id="reviewOrder">حفظ الطلب　▣</button></div>
 </div>
 </section>'''
-h, n = re.subn(r'<section id="new" class="page hidden">.*?</section>\s*<section id="customers"', new_section + '\n<section id="customers"', h, count=1, flags=re.S)
+h, n = re.subn(r'<section id="new" class="page hidden">.*?(?=<section id="customers")', new_section + '\n', h, count=1, flags=re.S)
 if n != 1:
     raise SystemExit("Could not replace the New Order section markup safely")
 
