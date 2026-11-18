@@ -11,7 +11,7 @@ s = jp.read_text(encoding="utf-8")
 new_section = r'''<section id="new" class="page hidden">
 <div class="approved-order">
 <header class="approved-order-head"><span class="head-cart">🛒</span><h2 id="formTitle">طلب جديد</h2><span class="head-menu">☰</span></header>
-<input type="hidden" id="editId">
+<input type="hidden" id="editId"><input type="hidden" id="orderNotes" value="">
 <section class="approved-card customer-card"><div class="customer-grid">
 <div class="approved-field"><label for="customerName">اسم العميل　♟</label><input id="customerName" placeholder="اسم العميل"></div>
 <div class="approved-field"><label for="customerPhone">رقم الموبايل　☎</label><input id="customerPhone" inputmode="tel" placeholder="رقم الموبايل"><button type="button" class="contact-import-btn" id="pickContact">اختيار من الدليل</button></div>
@@ -84,6 +84,15 @@ css = r"""/* Layout calibrated to the approved mobile reference */
 @media(max-width:390px){#new .approved-order{padding-left:8px;padding-right:8px}#new .approved-order-head{margin-left:-8px;margin-right:-8px}#new .sum-item b{font-size:12px!important}#new .sum-item small{font-size:9px!important}#new .customer-grid{gap:7px}}
 """
 h = h.replace("</style></head>", css + "\n</style></head>", 1)
+
+# The redesigned order form intentionally has no visible notes field; keep the
+# legacy data contract present so formData/edit/clear never dereference null.
+if 'id="orderNotes"' not in h:
+    h = h.replace('<input type="hidden" id="editId">', '<input type="hidden" id="editId"><input type="hidden" id="orderNotes" value="">')
+# Some app builds omit the optional overdue-days setting input. It must not
+# prevent IndexedDB initialization/rendering.
+s = s.replace("$('overdueDays').value=settings.overdueDays;", "if($('overdueDays'))$('overdueDays').value=settings.overdueDays;")
+
 
 # Remove the prior faulty layout helper which attached card classes to the entire form panel.
 s = re.sub(r'\nfunction applyApprovedNewOrderLayout\(\)\{.*?window\.addEventListener\(\'load\',applyApprovedNewOrderLayout\);\s*', '\n', s, count=1, flags=re.S)
