@@ -56,7 +56,7 @@ h=hp.read_text(encoding="utf-8")
 s=jp.read_text(encoding="utf-8")
 s=s.replace('>تعديل</button>','>✏️ تعديل</button>')
 s=s.replace('>حذف</button>','>🗑️ حذف</button>')
-s=s.replace('>طباعة الفاتورة</button>', r'''>🖨️ طباعة الفاتورة</button><button class="btn whatsapp" aria-label="مشاركة الفاتورة عبر واتساب" onclick="shareInvoiceWhatsApp(\''+o.id+'\')">🟢 واتساب</button>''')
+s=s.replace('>طباعة الفاتورة</button>', """ >🖨️ طباعة الفاتورة</button><button class="btn whatsapp" aria-label="مشاركة الفاتورة عبر واتساب" onclick="shareInvoiceWhatsApp(\\''+o.id+'\\')">🟢 واتساب</button>""")
 if "function shareInvoiceWhatsApp(id)" not in s:
  s += r"""
 function shareInvoiceWhatsApp(id){
